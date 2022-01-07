@@ -1,0 +1,33 @@
+name: 'Log4shell Container Patch'
+author: '@mgreau'
+description: 'Scan and patch against Log4shell, then publish a container image  - no rebuild.'
+branding:
+  icon: shield
+  color: blue
+inputs:
+  image:
+    description: 'Public image to scan and patch'
+    required: true
+    default: 'mgreau/log4shell-cpatch-demo:1.0'
+runs:
+  using: "composite"
+
+  steps:
+  - shell: bash
+    name: Log4shell - Scan and Patch container image
+    run: |
+      # Install the Tasks and Pipeline
+      kubectl apply -f tekton/log4shell-cpatch.yaml
+
+      # Scan the image and patch it if nedded
+      # Push the patched image to ttl.sh
+      tkn pipeline start log4shell-cpatch \
+        --param image=${{ inputs.image }} \
+        --workspace name=storage,volumeClaimTemplateFile=tekton/pvc.yaml --showlog
+
+  - shell: bash 
+    name: Result
+    run: |
+      PR=$(tkn pipelinerun list -o name --limit 1)
+      PR_NAME=$(echo "${PR#*/}")
+      tkn pipelinerun describe ${PR_NAME}

@@ -1,0 +1,144 @@
+apiVersion: tekton.dev/v1beta1
+kind: PipelineRun
+metadata:
+  name: log4shell-cpatch
+spec:
+  pipelineSpec:
+    params:
+      - name: image
+        type: string
+        default: "mgreau/log4shell-cpatch-demo:1.0"
+        description: The image to patch
+    workspaces:
+      - name: ghcr
+      - name: storage
+        description: |
+          This workspace is shared among all the pipeline tasks to read/write common resources
+    tasks:
+      - name: check-log4shell
+        params:
+          - name: image
+            value: "$(params.image)"
+        workspaces:
+          - name: storage
+            workspace: storage
+        taskSpec:
+          description: >-
+            Check if the container image is vulnerable to log4shell (CVE-2021-44228) and list the
+            JARs files to patch.
+            
+            This task uses log4jscanner from Google to detect the JAR files affected.
+
+          params:
+            - name: image
+          workspaces:
+            - name: storage
+          results:
+            - name: affected
+              description: indicates whether the image is affected or not by the CVE
+          steps:
+            - name: export-image-content
+              image: gcr.io/go-containerregistry/crane/debug@sha256:cfebf737d8a2fd88276da057bed45b1fe02f0fc147bdd7f57d43dae9a66a2f99 #tag: debug:v0.7.0
+              script: |
+                #!/busybox/sh
+
+                crane export $(params.image) image_content.tar
+                mkdir -p $(workspaces.storage.path)/image_content
+                tar -xf image_content.tar -C $(workspaces.storage.path)/image_content
+
+            - name: check-jar-files
+              image: docker.io/mgreau/log4shell-tools@sha256:29c6b54913c5071343c9678c25905b57da72e19146a01345e725cb4d8654c0cd #tag: 1.1
+              script: |
+                #!/bin/sh
+
+                log4jscanner $(workspaces.storage.path)/image_content >>  $(workspaces.storage.path)/jars-detected.txt
+
+                echo "[INFO] Files to patch:"
+                cat $(workspaces.storage.path)/jars-detected.txt
+
+                echo "[INFO] Is the container image affected? "
+                if [ -s $(workspaces.storage.path)/jars-detected.txt ]; then
+                  printf yes | tee /tekton/results/affected
+                  echo " - found JAR files that need to be patched by removing the JndiLookup.class."
+                else
+                  printf no | tee /tekton/results/affected
+                  echo " vulnerable JAR files found."
+                fi
+
+      - name: patch-image
+        params:
+          - name: image
+            value: "$(params.image)"
+        when:
+          - input: "$(tasks.check-log4shell.results.affected)"
+            operator: in
+            values: ["yes"]
+        workspaces:
+          - name: storage
+            workspace: storage
+          - name: ghcr
+            workspace: ghcr
+        runAfter:
+          - check-log4shell
+        taskSpec:
+          description: >-
+            Create a patch (if needed) to mitigate the vulnerability by removing the JndiLookup.class from the class path.
+            
+            This task uses crane to export the content of the image locally to inpsect and patch (if needed) the JAR files.
+            All the patched JARs files are put together in a tarball.
+
+            crane, from Google, is a tool for managing container images.
+            log4jscanner, from Google, is a log4j vulnerability filesystem scanner that can remove the vulnerable class from detected JARs in-place
+          params:
+            - name: image
+          workspaces:
+            - name: storage
+            - name: ghcr
+          results:
+            - name: exists
+              description: indicates whether the patch exists or is missing
+          steps:
+
+            # patch all vulnerable files by removing JndiLookup.class from the archive as mentioned
+            # on the log4j repo https://github.com/apache/logging-log4j2/pull/608#issuecomment-990474429
+            - name: build-patch
+              image: docker.io/mgreau/log4shell-tools@sha256:29c6b54913c5071343c9678c25905b57da72e19146a01345e725cb4d8654c0cd #tag: 1.1
+              script: |
+                #!/bin/bash
+
+                echo "[INFO] remove the vulnerable class from detected JARs in-place"
+                log4jscanner --rewrite $(workspaces.storage.path)/image_content
+
+                echo "[INFO] create a tarball file with all the patched JARs"
+                tar -cvf $(workspaces.storage.path)/log4shell-patch.tar --absolute-names --files-from $(workspaces.storage.path)/jars-detected.txt
+                tar --transform 's,^$(workspaces.storage.path)/image_content,,' -c  -f $(workspaces.storage.path)/log4shell-patch.tar --files-from $(workspaces.storage.path)/jars-detected.txt --show-transformed-names --absolute-names
+
+            - name: patch-and-push-image
+              image: gcr.io/go-containerregistry/crane/debug@sha256:cfebf737d8a2fd88276da057bed45b1fe02f0fc147bdd7f57d43dae9a66a2f99 #tag: debug:v0.7.0
+              script: |
+                #!/busybox/sh
+
+                crane append -b $(params.image) \
+                      -t $(params.image)-log4shell-patched \
+                      -f $(workspaces.storage.path)/log4shell-patch.tar \
+                      -o $(workspaces.storage.path)/image_patched.tar
+
+                pwd=$(cat $(workspaces.ghcr.path)/token)
+                crane auth login ghcr.io --username "mgreau" --password "${pwd}"
+                crane push $(workspaces.storage.path)/image_patched.tar ghcr.io/mgreau/log4shell-patched
+
+  params:
+    - name: image
+      value: "mgreau/log4shell-cpatch-demo:1.0"
+  workspaces:
+    - name: ghcr
+      secret:
+        secretName: ghcr
+    - name: storage
+      volumeClaimTemplate:
+        spec:
+          accessModes:
+            - ReadWriteOnce
+          resources:
+            requests:
+              storage: 800M

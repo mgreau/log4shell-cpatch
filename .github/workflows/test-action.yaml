@@ -1,0 +1,32 @@
+name: Test Log4shell cpatch Action
+
+on:
+  push:
+    branches: ['main']
+
+jobs:
+  use-action:
+    name: Test  Log4shell cpatch Action
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: engineerd/setup-kind@v0.5.0
+        with:
+          version: "v0.11.1"
+
+      - name: Install Tekton Pipelines
+        run: kubectl apply -f https://storage.googleapis.com/tekton-releases/pipeline/previous/v0.24.1/release.yaml
+
+      - uses: jerop/tkn@v0.1.0
+
+      - name: Test non-vulnerable image
+        uses: mgreau/log4shell-cpatch@main
+        with:
+          image: alpine
+
+      - name: Test vulnerable image
+        uses: mgreau/log4shell-cpatch@main
+        with:
+          image: mlinarik/log4j-log4shell-vulnerable-app:latest
