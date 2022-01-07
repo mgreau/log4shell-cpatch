@@ -36,7 +36,7 @@ jobs:
 
 ```
 
-**That's it!** The process scans the content of the container image, patches any vulnerable JAR files, updates the container image and pushes it to [https:/ttl.sh]([https:/ttl.sh). No "docker build" involved, thanks to `crane`.
+**That's it!** The process scans the content of the container image, patches any vulnerable JAR files, updates the container image and pushes it to [https://ttl.sh]([https://ttl.sh). No "docker build" involved, thanks to `crane`.
 
 
 It uses the following components:
