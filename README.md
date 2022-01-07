@@ -2,9 +2,10 @@
 
 [![Build](https://github.com/mgreau/log4shell-cpatch/actions/workflows/test-action.yaml/badge.svg)](https://github.com/mgreau/log4shell-cpatch/actions/workflows/test-action.yaml)
 
-Tool to scan and patch a container image impacted by Log4Shell (CVE-2021-44228).
+Tool to scan and patch a container image impacted by [Log4Shell](https://www.lunasec.io/docs/blog/log4j-zero-day/
+) ([CVE-2021-44228](https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2021-44228).
 
-_WARNING: it is recommended to upgrade to the latest log4j versions_
+_WARNING: it is recommended to upgrade your container [to the latest log4j versions](https://search.maven.org/artifact/org.apache.logging.log4j/log4j)_
 
 ## Example usage
 
