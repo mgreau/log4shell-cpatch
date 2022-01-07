@@ -2,7 +2,7 @@
 
 [![Build](https://github.com/mgreau/log4shell-cpatch/actions/workflows/test-action.yaml/badge.svg)](https://github.com/mgreau/log4shell-cpatch/actions/workflows/test-action.yaml)
 
-Tool to scan and patch a container image impacted by Log4Shell (CVE-2021-44228) without rebuilding the image.
+Tool to scan and patch a container image impacted by Log4Shell (CVE-2021-44228).
 
 _WARNING: it is recommended to upgrade to the latest log4j versions_
 
@@ -35,7 +35,7 @@ jobs:
 
 ```
 
-**That's it!** The process will scan the content of the container image, patch any vulnerable JAR files, update the container image and push it to ttl.sh. There is no "docker build" involved thanks to `crane`.
+**That's it!** The process scans the content of the container image, patches any vulnerable JAR files, updates the container image and pushes it to [https:/ttl.sh]([https:/ttl.sh). No "docker build" involved, thanks to `crane`.
 
 
 It uses the following components:
