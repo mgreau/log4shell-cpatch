@@ -1,4 +1,4 @@
-# GitHub Action to Patch a container image against Log4Shell - No rebuild
+# GitHub Action to Patch a container image against Log4Shell
 
 [![Build](https://github.com/mgreau/log4shell-cpatch/actions/workflows/test-action.yaml/badge.svg)](https://github.com/mgreau/log4shell-cpatch/actions/workflows/test-action.yaml)
 
