@@ -30,7 +30,7 @@ jobs:
       - uses: jerop/tkn@v0.1.0
 
       - name: Patch vulnerable image
-        uses: mgreau/log4shell-cpatch@v0.1
+        uses: mgreau/log4shell-cpatch@v0.2
         with:
           image: mlinarik/log4j-log4shell-vulnerable-app:latest
 
