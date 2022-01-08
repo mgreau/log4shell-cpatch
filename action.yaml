@@ -23,7 +23,7 @@ runs:
       # Push the patched image to ttl.sh
       tkn pipeline start log4shell-cpatch \
         --param image=${{ inputs.image }} \
-        --workspace name=storage,volumeClaimTemplateFile=tekton/pvc.yaml --showlog
+        --workspace name=storage,volumeClaimTemplateFile=${{ github.action_path }}/tekton/pvc.yaml --showlog
 
   - shell: bash 
     name: Result
