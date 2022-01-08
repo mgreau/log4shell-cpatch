@@ -38,6 +38,28 @@ jobs:
 
 **That's it!** The process scans the content of the container image, patches any vulnerable JAR files, updates the container image and pushes it to [https://ttl.sh](https://ttl.sh). No "docker build" involved, thanks to `crane`.
 
+### Output logs example
+```console
+[scan-image : check-jar-files] [INFO] Files to patch:
+[scan-image : check-jar-files] /workspace/storage/image_content/app/spring-boot-application.jar
+[scan-image : check-jar-files] [INFO] Is the container image affected? 
+[scan-image : check-jar-files] yes - found JAR files that need to be patched by removing the JndiLookup.class.
+
+[patch-image : build-patch] [INFO] remove the vulnerable class from detected JARs in-place
+[patch-image : build-patch] /workspace/storage/image_content/app/spring-boot-application.jar
+[patch-image : build-patch] [INFO] create a tarball file with all the patched JARs
+[patch-image : build-patch] /workspace/storage/image_content/app/spring-boot-application.jar
+
+[patch-image : patch-and-push-image] 2022/01/08 02:53:58 pushed blob: sha256:35920a071f912ae4c16897610e8e2d514efcfd0e14ec76c4c73bf9aa7c2c55ea
+[patch-image : patch-and-push-image] 2022/01/08 02:53:58 pushed blob: sha256:e3c844e23771b0f749f3a1795cf51ea31a541cf71e9b6f1a4453f32cb3ed22e3
+[patch-image : patch-and-push-image] 2022/01/08 02:53:59 pushed blob: sha256:89ee3548903bbcd332a7765f096caa1a59b0590f16390e1b925421690bf7d721
+[patch-image : patch-and-push-image] 2022/01/08 02:53:59 pushed blob: sha256:cd784148e3483c2c86c50a48e535302ab0288bebd587accf40b714fffd0646b3
+[patch-image : patch-and-push-image] 2022/01/08 02:54:04 pushed blob: sha256:c182a1c16707219422e92cf7025b399e23f0fd6615a87664f60cc9ad53a29ce5
+[patch-image : patch-and-push-image] 2022/01/08 02:54:09 pushed blob: sha256:6ab77d92d7f6ee82534a0db0255b897ae563f9f8462453dd506d9193e5ed56ee
+[patch-image : patch-and-push-image] 2022/01/08 02:54:24 pushed blob: sha256:f8a5c2c61767e93d1e332a4319f396f39b0dc6b2ee9e4cd2b9d0d5270c82556c
+[patch-image : patch-and-push-image] 2022/01/08 02:54:25 ttl.sh/20220108025351:1h: digest: sha256:477040401f74ee41e24c12c50c47d862d357ce15c0a1455079206248b9bf451b size: 1243
+[patch-image : patch-and-push-image] ttl.sh/20220108025351:1h
+```
 
 It uses the following components:
 
