@@ -17,7 +17,7 @@ runs:
     name: Log4shell - Scan and Patch container image
     run: |
       # Install the Tasks and Pipeline
-      kubectl apply -f tekton/log4shell-cpatch.yaml
+      kubectl apply -f ${{ github.action_path }}/tekton/log4shell-cpatch.yaml
 
       # Scan the image and patch it if nedded
       # Push the patched image to ttl.sh
