@@ -3,6 +3,8 @@ name: Test Log4shell cpatch Action
 on:
   push:
     branches: ['main']
+  pull_request:
+    branches: ['main']
 
 jobs:
   use-action:
