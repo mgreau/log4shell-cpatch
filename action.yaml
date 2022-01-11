@@ -31,3 +31,8 @@ runs:
       PR=$(tkn pipelinerun list -o name --limit 1)
       PR_NAME=$(echo "${PR#*/}")
       tkn pipelinerun describe ${PR_NAME}
+
+  - uses: actions/upload-artifact@v2
+    with:
+      name: my-artifact
+      path: /tmp/
