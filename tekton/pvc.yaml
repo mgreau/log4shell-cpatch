@@ -1,8 +1,23 @@
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: pv
+spec:
+  storageClassName: standard
+  accessModes:
+    - ReadWriteOnce
+  capacity:
+    storage: 2Gi
+  hostPath:
+    path: /ws/
+---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: pvc
 spec:
+  volumeName: pv
   accessModes:
     - ReadWriteOnce
   resources:
