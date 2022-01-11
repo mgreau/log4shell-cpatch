@@ -34,5 +34,5 @@ runs:
 
   - uses: actions/upload-artifact@v2
     with:
-      name: image-patched
+      name: my-artifact
       path: /tmp/
